@@ -7,6 +7,7 @@ public class Gaurd : MonoBehaviour
     [SerializeField]private Transform m_pathHolder;
     [SerializeField]private float m_moveSpeed;
     [SerializeField]private float m_waitTime;
+    [SerializeField]private float m_turnSpeed;
 
     private Vector3 m_currentPosition;
     private Vector3 m_nextPosition;
@@ -35,6 +36,7 @@ public class Gaurd : MonoBehaviour
         transform.position = _wayPoints[0];                                                                                      //set position to start of path
         int _targetWaypointIndex = 1;
         Vector3 _targetWaypointPosition = _wayPoints[_targetWaypointIndex];
+        transform.LookAt(_targetWaypointPosition);
         
         while(true){
             transform.position = Vector3.MoveTowards(transform.position,_targetWaypointPosition,m_moveSpeed*Time.deltaTime);
@@ -43,10 +45,26 @@ public class Gaurd : MonoBehaviour
                 _targetWaypointPosition = _wayPoints[_targetWaypointIndex];
         
                 yield return new WaitForSeconds(m_waitTime);                                                                        //gaurd wait before moving to next position
+                yield return StartCoroutine(TurnToFace(_targetWaypointPosition));
             }
             
             yield return null;                                                                                                      //loop runs only once per frame
         }                                                                                                   
+    }
+
+//`````````````````````````````````````````````````````````````````````````````````````````````````````
+//`````````````````````````````````````````````````````````````````````````````````````````````````````
+
+    private IEnumerator TurnToFace(Vector3 _lookTarget){
+        
+        Vector3 _dirToLookTarget = (_lookTarget-transform.position).normalized;
+        float _targetAngle = 90-Mathf.Atan2(_dirToLookTarget.z,_dirToLookTarget.x)*Mathf.Rad2Deg;
+
+        while (Mathf.DeltaAngle(transform.eulerAngles.y,_targetAngle)>0.5f){
+            float _angle = Mathf.MoveTowardsAngle(transform.eulerAngles.y,_targetAngle,m_turnSpeed*Time.deltaTime);
+            transform.eulerAngles = Vector3.up*_angle;
+            yield return null;
+        }
     }
 
 //`````````````````````````````````````````````````````````````````````````````````````````````````````
