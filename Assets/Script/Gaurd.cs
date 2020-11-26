@@ -21,6 +21,7 @@ public class Gaurd : MonoBehaviour
         for(int i=0;i<_wayPoints.Length;i++){
 
             _wayPoints[i] = m_pathHolder.GetChild(i).position;
+            _wayPoints[i] = new Vector3(_wayPoints[i].x,transform.position.y,_wayPoints[i].z);
         }
 
         StartCoroutine(Patrol(_wayPoints));
@@ -36,15 +37,16 @@ public class Gaurd : MonoBehaviour
         Vector3 _targetWaypointPosition = _wayPoints[_targetWaypointIndex];
         
         while(true){
-
             transform.position = Vector3.MoveTowards(transform.position,_targetWaypointPosition,m_moveSpeed*Time.deltaTime);
-            _targetWaypointIndex = (_targetWaypointIndex+1)%_wayPoints.Length;                                                  //once index reach to maximum it is set back to 0
-            _targetWaypointPosition = _wayPoints[_targetWaypointIndex];
+            if(transform.position == _targetWaypointPosition){
+                _targetWaypointIndex = (_targetWaypointIndex+1)%_wayPoints.Length;                                                  //once index reach to maximum it is set back to 0
+                _targetWaypointPosition = _wayPoints[_targetWaypointIndex];
         
-            yield return new WaitForSeconds(m_waitTime);                                                                        //gaurd wait before moving to next position
-        }
-
-        yield return null;                                                                                                      //loop runs only once per frame
+                yield return new WaitForSeconds(m_waitTime);                                                                        //gaurd wait before moving to next position
+            }
+            
+            yield return null;                                                                                                      //loop runs only once per frame
+        }                                                                                                   
     }
 
 //`````````````````````````````````````````````````````````````````````````````````````````````````````
