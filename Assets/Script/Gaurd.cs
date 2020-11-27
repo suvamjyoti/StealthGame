@@ -60,7 +60,7 @@ public class Gaurd : MonoBehaviour
         Vector3 _dirToLookTarget = (_lookTarget-transform.position).normalized;
         float _targetAngle = 90-Mathf.Atan2(_dirToLookTarget.z,_dirToLookTarget.x)*Mathf.Rad2Deg;
 
-        while (Mathf.DeltaAngle(transform.eulerAngles.y,_targetAngle)>0.5f){
+        while (Mathf.Abs(Mathf.DeltaAngle(transform.eulerAngles.y,_targetAngle))>0.5f){
             float _angle = Mathf.MoveTowardsAngle(transform.eulerAngles.y,_targetAngle,m_turnSpeed*Time.deltaTime);
             transform.eulerAngles = Vector3.up*_angle;
             yield return null;
