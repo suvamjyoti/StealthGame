@@ -10,10 +10,29 @@ public class Player : MonoBehaviour
 
     private float m_vertical;
     private float m_horizontal;
-
     private float m_currentAngle;
     private float m_smoothInputMagnitude;
     private float m_smoothMoveVelocity;
+
+    private Rigidbody rigidbody;
+    private Vector3 m_velocity;
+
+//`````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
+//`````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
+
+    private void Awake() {
+
+        rigidbody = GetComponent<Rigidbody>();
+    }
+
+//`````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
+//`````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
+
+    private void FixedUpdate() {
+        
+        rigidbody.MoveRotation(Quaternion.Euler(Vector3.up*m_currentAngle));
+        rigidbody.MovePosition(rigidbody.position + m_velocity * Time.deltaTime);
+    }
 
 //`````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
 //`````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
@@ -37,9 +56,8 @@ public class Player : MonoBehaviour
 
         float _targetAngle = Mathf.Atan2(_moveDirection.x,_moveDirection.z)*Mathf.Rad2Deg;
         m_currentAngle = Mathf.LerpAngle(m_currentAngle,_targetAngle,Time.deltaTime * m_turnSpeed * _inputMagnitude);
-        transform.eulerAngles = Vector3.up * m_currentAngle;
-
-        transform.Translate(transform.forward * m_moveSpeed * m_smoothInputMagnitude * Time.deltaTime,Space.World);
+        
+        m_velocity = transform.forward * m_moveSpeed * m_smoothInputMagnitude;
     }
 
 }
