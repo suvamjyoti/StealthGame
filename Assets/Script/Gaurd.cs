@@ -8,9 +8,18 @@ public class Gaurd : MonoBehaviour
     [SerializeField]private float m_moveSpeed;
     [SerializeField]private float m_waitTime;
     [SerializeField]private float m_turnSpeed;
+    
 
     private Vector3 m_currentPosition;
     private Vector3 m_nextPosition;
+
+    [SerializeField]private Light m_spotLight;
+    [SerializeField]private float m_viewDistance;
+    private float m_viewAngle;
+    private Color m_originalSpotlightColor;
+    
+    [SerializeField]private Transform player;
+    [SerializeField]private LayerMask viewMask;
 
 //`````````````````````````````````````````````````````````````````````````````````````````````````````
 //`````````````````````````````````````````````````````````````````````````````````````````````````````
@@ -18,7 +27,9 @@ public class Gaurd : MonoBehaviour
     private void Start() {
 
         Vector3[] _wayPoints = new Vector3[m_pathHolder.childCount];
-
+        m_viewAngle = m_spotLight.spotAngle;
+        m_originalSpotlightColor = m_spotLight.color;
+        
         for(int i=0;i<_wayPoints.Length;i++){
 
             _wayPoints[i] = m_pathHolder.GetChild(i).position;
@@ -26,6 +37,39 @@ public class Gaurd : MonoBehaviour
         }
 
         StartCoroutine(Patrol(_wayPoints));
+    }
+
+//`````````````````````````````````````````````````````````````````````````````````````````````````````
+//`````````````````````````````````````````````````````````````````````````````````````````````````````
+
+    private void Update() {
+
+        if(CanSeePlayer()){
+            m_spotLight.color = Color.red;
+        }
+        else{
+            m_spotLight.color = m_originalSpotlightColor;
+        }        
+
+    }
+
+//`````````````````````````````````````````````````````````````````````````````````````````````````````
+//`````````````````````````````````````````````````````````````````````````````````````````````````````
+
+    private bool CanSeePlayer(){
+        if(Vector3.Distance(transform.position,player.position)< m_viewDistance){                       //Is Player In View Range
+
+            Vector3 _directionToPlayer = (player.position - transform.position).normalized;
+            float _angleBetweenGuardAndPlayer = Vector3.Angle(transform.forward,_directionToPlayer);
+
+            if(_angleBetweenGuardAndPlayer < m_viewAngle/2f){                                             //Is Player In View Cone
+
+                if(!Physics.Linecast(transform.position,player.position,viewMask)){                     //Is Player In Line Of Sight
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 //`````````````````````````````````````````````````````````````````````````````````````````````````````
@@ -79,5 +123,8 @@ public class Gaurd : MonoBehaviour
             _previousPosition = _waypoint.position;
         }
         Gizmos.DrawLine(_previousPosition,_startPosition);
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawRay(transform.position, transform.forward * m_viewDistance);
     }
 }
