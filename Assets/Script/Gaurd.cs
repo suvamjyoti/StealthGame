@@ -24,7 +24,8 @@ public class Gaurd : MonoBehaviour
     
     [SerializeField]private Transform player;
     [SerializeField]private LayerMask viewMask;
-
+    [SerializeField]private PlayerGameOver playerGameOver;
+    
 //`````````````````````````````````````````````````````````````````````````````````````````````````````
 //`````````````````````````````````````````````````````````````````````````````````````````````````````
 
@@ -56,6 +57,7 @@ public class Gaurd : MonoBehaviour
                 if(m_turnToPlayerCoroutine==null){                                                          //if turn towards coroutine already running
                     m_turnToPlayerCoroutine = StartCoroutine(TurnToFace(player.position));
                 }
+                playerGameOver.playerDetected();
             }
             else{
 

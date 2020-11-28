@@ -2,12 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class PlayerGameOver : MonoBehaviour
 {
-    [SerializeField]Player player;
+    [SerializeField]private Player player;
+    [SerializeField]private GameObject GameOverUI; 
 
-    private void playerDetected(){
-        player.GetComponent<Player>().enabled = false;
+    internal void playerDetected(){
+        player.enabled = false;
+        StartCoroutine(WaitBeforeGameOver());
+    }
+
+    private IEnumerator WaitBeforeGameOver(){
+        yield return new WaitForSeconds(0.5f);
+        GameOverUI.SetActive(true);
     }
 
 
