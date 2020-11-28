@@ -8,10 +8,14 @@ public class Gaurd : MonoBehaviour
     [SerializeField]private float m_moveSpeed;
     [SerializeField]private float m_waitTime;
     [SerializeField]private float m_turnSpeed;
+    [SerializeField]private float m_proximityRadius;
     
 
     private Vector3 m_currentPosition;
     private Vector3 m_nextPosition;
+    private Coroutine m_patrolCoroutine;
+    private Coroutine m_turnToPlayerCoroutine;
+    private bool m_playerDetected;
 
     [SerializeField]private Light m_spotLight;
     [SerializeField]private float m_viewDistance;
@@ -36,7 +40,7 @@ public class Gaurd : MonoBehaviour
             _wayPoints[i] = new Vector3(_wayPoints[i].x,transform.position.y,_wayPoints[i].z);
         }
 
-        StartCoroutine(Patrol(_wayPoints));
+        m_patrolCoroutine = StartCoroutine(Patrol(_wayPoints));
     }
 
 //`````````````````````````````````````````````````````````````````````````````````````````````````````
@@ -44,27 +48,49 @@ public class Gaurd : MonoBehaviour
 
     private void Update() {
 
-        if(CanSeePlayer()){
-            m_spotLight.color = Color.red;
-        }
-        else{
-            m_spotLight.color = m_originalSpotlightColor;
-        }        
+        if(!m_playerDetected){                                                                              //if player not detected
+            if(CanSeePlayer() || PlayerInProximity()){                                                      //if player in proximity or line of sight
+                m_playerDetected=true;
+                m_spotLight.color = Color.red;
+                StopCoroutine(m_patrolCoroutine);                                                           //stop patrol coroutine
+                if(m_turnToPlayerCoroutine==null){                                                          //if turn towards coroutine already running
+                    m_turnToPlayerCoroutine = StartCoroutine(TurnToFace(player.position));
+                }
+            }
+            else{
 
+                m_spotLight.color = m_originalSpotlightColor;
+            }
+        }        
+    }
+
+//`````````````````````````````````````````````````````````````````````````````````````````````````````
+//`````````````````````````````````````````````````````````````````````````````````````````````````````
+
+    private bool PlayerInProximity(){
+         var _collidersInRange = Physics.OverlapSphere (transform.position, m_proximityRadius);            //define a proximity Sphere
+
+         foreach(var item in _collidersInRange){                                                           
+             if(item.tag=="Player"){                                                                       //if objects in sphere has tag player 
+                                                                          
+                 return true;
+             }
+         }
+        return false;
     }
 
 //`````````````````````````````````````````````````````````````````````````````````````````````````````
 //`````````````````````````````````````````````````````````````````````````````````````````````````````
 
     private bool CanSeePlayer(){
-        if(Vector3.Distance(transform.position,player.position)< m_viewDistance){                       //Is Player In View Range
+        if(Vector3.Distance(transform.position,player.position)< m_viewDistance){                           //Is Player In View Range
 
             Vector3 _directionToPlayer = (player.position - transform.position).normalized;
             float _angleBetweenGuardAndPlayer = Vector3.Angle(transform.forward,_directionToPlayer);
 
-            if(_angleBetweenGuardAndPlayer < m_viewAngle/2f){                                             //Is Player In View Cone
+            if(_angleBetweenGuardAndPlayer < m_viewAngle/2f){                                               //Is Player In View Cone
 
-                if(!Physics.Linecast(transform.position,player.position,viewMask)){                     //Is Player In Line Of Sight
+                if(!Physics.Linecast(transform.position,player.position,viewMask)){                         //Is Player In Line Of Sight
                     return true;
                 }
             }
@@ -77,7 +103,7 @@ public class Gaurd : MonoBehaviour
 
     private IEnumerator Patrol(Vector3[] _wayPoints){
         
-        transform.position = _wayPoints[0];                                                                                      //set position to start of path
+        transform.position = _wayPoints[0];                                                                                         //set position to start of path
         int _targetWaypointIndex = 1;
         Vector3 _targetWaypointPosition = _wayPoints[_targetWaypointIndex];
         transform.LookAt(_targetWaypointPosition);
@@ -108,6 +134,7 @@ public class Gaurd : MonoBehaviour
             float _angle = Mathf.MoveTowardsAngle(transform.eulerAngles.y,_targetAngle,m_turnSpeed*Time.deltaTime);
             transform.eulerAngles = Vector3.up*_angle;
             yield return null;
+            m_turnToPlayerCoroutine = null;
         }
     }
 
@@ -118,13 +145,16 @@ public class Gaurd : MonoBehaviour
         Vector3 _startPosition = m_pathHolder.GetChild(0).position;
         Vector3 _previousPosition = _startPosition;  
         foreach(Transform _waypoint in m_pathHolder){
-            Gizmos.DrawSphere(_waypoint.position,0.3f);
-            Gizmos.DrawLine(_previousPosition,_waypoint.position);
+            Gizmos.DrawSphere(_waypoint.position,1f);                                                   //draw sphere for each waypoint
+            Gizmos.DrawLine(_previousPosition,_waypoint.position);                                      //connect all waypoint
             _previousPosition = _waypoint.position;
         }
-        Gizmos.DrawLine(_previousPosition,_startPosition);
+        Gizmos.DrawLine(_previousPosition,_startPosition);                                              //join start point and end point
 
         Gizmos.color = Color.red;
-        Gizmos.DrawRay(transform.position, transform.forward * m_viewDistance);
+        Gizmos.DrawRay(transform.position, transform.forward * m_viewDistance);                         //ditection line range
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, m_proximityRadius);
     }
 }
