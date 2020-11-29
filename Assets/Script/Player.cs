@@ -8,6 +8,8 @@ public class Player : MonoBehaviour
     [SerializeField]private float m_smoothMoveTime=0.2f;
     [SerializeField]private float m_turnSpeed=5f;
 
+    [SerializeField]private WinCondition winCondition;
+
     private float m_vertical;
     private float m_horizontal;
     private float m_currentAngle;
@@ -59,5 +61,15 @@ public class Player : MonoBehaviour
         
         m_velocity = transform.forward * m_moveSpeed * m_smoothInputMagnitude;
     }
+
+//`````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
+//`````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
+
+    private void OnTriggerEnter(Collider other) {
+        if(other.gameObject.tag=="Win"){
+            winCondition.playerWon();
+        }
+    }
+
 
 }

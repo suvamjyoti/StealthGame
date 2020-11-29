@@ -16,6 +16,7 @@ public class PlayerGameOver : MonoBehaviour
     private IEnumerator WaitBeforeGameOver(){
         yield return new WaitForSeconds(0.5f);
         GameOverUI.SetActive(true);
+        Time.timeScale = 0;
     }
 
 
